@@ -14,6 +14,9 @@ def parse_midi_file(filename):
     midi = converter.parse(filename)
     return midi.flat.notes
 
+def load_data():
+    # TODO: Read a bunch of midi files on memmory and train.
+
 def add_to_one_hot(vector,element):
     vector[element] += 1
     return vector
@@ -41,3 +44,6 @@ def song_to_one_hot(note_sequence):
                 add_to_one_hot(one_hot_step,chord_note.midi)
 
     return song
+
+def batch_producer():
+    # TODO: Make train and test sets, with inputs and targets as one hot feature vectors.
