@@ -36,6 +36,36 @@ def multilayer_perceptron_model(input_,n_input_nodes,n_nodes_hl1,n_nodes_hl2,n_n
 
     return output
 
+def train2(x,y,logits,batch_size,num_epochs,learning_rate=0.001):
+    xentropy = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits,labels=y)
+    cost = tf.reduce_mean(xentropy)
+    optimizer = tf.train.AdamOptimizer(learning_rate).minimize(cost)
+
+    with tf.Session() as sess:
+        sess.run(tf.global_variables_initializer())
+
+        for epoch in range(num_epochs):
+            epoch_loss = 0
+
+            i = 0;
+            while i < len(train_x):
+                start = i;
+                end = i + batch_size
+
+                batch_x = np.array(train_x[start:end])
+                batch_y = np.array(train_y[start:end])
+
+                _, c = sess.run([optimizer,cost],feed_dict = {x: batch_x,y: batch_y})
+                epoch_loss += c
+
+                i += batch_size
+
+            print('Epoch', epoch, 'completed out of', num_epochs, 'loss:',epoch_loss)
+
+        correct = tf.equal(tf.argmax(logits,1),tf.argmax(y,1))
+        accuracy = tf.reduce_mean(tf.cast(correct,'float'))
+        print('Accuracy:', accuracy.eval({x:test_x,y:test_y}))
+
 def train(x,y,logits,train_x, train_y, test_x, test_y,batch_size,num_epochs,learning_rate=0.001):
     xentropy = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits,labels=y)
     cost = tf.reduce_mean(xentropy)
