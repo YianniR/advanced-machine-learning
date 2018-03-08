@@ -42,6 +42,7 @@ def durations_to_integers(float_durations, divisor): #divisor is the smallest si
     return int_durations.astype(int)
     
 def remove_simultaneous_notes(flat_note_vector):
+    flat_note_vector = flat_note_vector.stripTies()
     corrected = stream.Stream()
     corrected.append(flat_note_vector[0])
     previous_offset = flat_note_vector[0].offset
@@ -87,7 +88,8 @@ def difference_in_list(ip_list):
     diff = diff + list(map(operator.sub,ip_list[1:], ip_list[:-1]))
     return diff
 
-def list_to_one_hot_differences(note_values,max_difference):
+def list_to_one_hot_differences(note_values):
+    max_difference = 128
     one_hot_full = list()
     differences = difference_in_list(note_values)
     
@@ -99,7 +101,8 @@ def list_to_one_hot_differences(note_values,max_difference):
     return one_hot_full
 
     
-def list_to_combined_differences(position,max_difference,value):
+def list_to_combined_differences(position,value):
+    max_difference = 128
     one_hot_full = list()
     differences = difference_in_list(position)
     
