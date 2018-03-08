@@ -1,38 +1,30 @@
-import tensorflow as tf
-import lib.networks as nn
-from lib.classes import Song
+from pre_processing import *
 
-def main():
-    #tls.convert_midi_to_pickle('data\Around The World - Chorus.midi',10)
-    song = Song("data\Around The World - Chorus.midi")
-    song.play()
-    song.make_targets(10)
-    song.save_song_as_pickle()
+song_name = 'bach/bwv431.mxl'
+    
+note_sequence = flatted_single_part(parse_corpus(song_name),1) #returns a sequence of notes with offsets
+note_sequence_single = remove_simultaneous_notes(note_sequence)
 
-    # now = datetime.utcnow().strftime("%Y%m%d%H%M%S")
-    # root_logdir = "tf_logs"
-    # logdir = "{}/run-{}/".format(root_logdir, now)
-    #
-    # tf.reset_default_graph()
-    # n_steps   = 28
-    # n_inputs  = 127
-    # n_neurons = 150
-    # n_outputs = 10
-    # learning_rate = 0.001
-    # batch_size = 100
-    #
-    # # Height by Width
-    # input_ = tf.placeholder('float',[None,n_steps,n_input_nodes]) #784=28x28
-    # target = tf.placeholder('float',[None])
-    #
-    # data = batch_producer()
-    # train_x = data.train.inputs
-    # train_y = data.train.targets
-    # test_x = data.test.inputs
-    # test_y = data.test.targets
-    #
-    # prediction = nn.rnn_model(input_,n_neurons,n_outputs)
-    # nn.train(input_,target,prediction,train_x, train_y, test_x, test_y,batch_size,num_epochs)
+filled_durations = stretch_duration_to_fill_time(note_sequence_single)
+durations = durations_to_integers(filled_durations, 8)
+#note_sequence.show()
+#note_sequence_single.show()
 
-if __name__ == "__main__":
-    main()
+#get midi values
+pitches = flat_to_midi_pitches(note_sequence_single)
+#print(pitches)
+
+#need to write programs to take pitches and durations and output different representaitons 
+#1 hot, simpleduration in pitch etc.
+
+one_hot_pitches = list_to_one_hot(pitches)
+one_hot_duration = list_to_one_hot(durations) #durations include a 0th row, but will never actually have anything in there (unless i suppose it's a tiny ass note)
+
+matrix_representation = pitch_duration_matrix(pitches, durations) #pitches represented by position in the array, durations are the values at those positions
+
+# now to make a difference representation
+one_hot_pitches_difference = list_to_one_hot_differences(pitches,128)
+one_hot_duration_difference = list_to_one_hot_differences(durations,128)
+
+
+combined_differences_matrix = list_to_combined_differences(pitches,128,durations)
