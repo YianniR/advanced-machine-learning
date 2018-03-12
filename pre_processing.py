@@ -13,7 +13,7 @@ def play_notes(notes):
 
 def parse_midi_file(filename):
     midi = converter.parse(filename)
-    return midi.flat.notes
+    return midi
 
 def parse_corpus(filename):
     
@@ -21,20 +21,38 @@ def parse_corpus(filename):
     return full_piece
 
 def flatted_single_part(full_piece, part_number):
-    return full_piece.parts[part_number].flat.notes
+    return full_piece.parts[part_number].flat.notesAndRests
 
-def flat_to_midi_pitches(flat_note_vector):
+def flat_to_midi_pitches(no_rests):
     pitches = list() #not finished as it does not take into account the time signature
-    for el in flat_note_vector:
+    for el in no_rests:
         pitches.append(el.pitch.midi)
     return pitches
 
-def stretch_duration_to_fill_time(flat_note_vector):
+def remove_rests_and_fill_time(flat_note_vector):
+    no_rests = stream.Stream()
+    for idx, el in enumerate(flat_note_vector):
+        if el.isNote:
+            no_rests.append(el)
+            
+        elif el.isRest:
+            no_rests[-1].duration.quarterLength = no_rests[-1].duration.quarterLength + el.duration.quarterLength
+            
+        else:
+            raise ValueError("Element is not a note or rest...")
+            return -1    
+    
+    return no_rests
+
+def stretch_duration_to_fill_time(no_rests): #remove rests in this function
     time_durations = list()
-    for i in range(0,len(flat_note_vector)-1):
-        time_durations.append( flat_note_vector[i+1].offset - flat_note_vector[i].offset)
+    
+    
+    for i in range(0,len(no_rests)-1): #there is a bug here that causes rests to act inccorectly. fi by checking that all elements are notes before hand
+        time_durations.append( no_rests[i+1].offset - no_rests[i].offset)
+        print(no_rests[i+1].offset,no_rests[i].offset, time_durations[-1])
     #final duration remains the same
-    time_durations.append( flat_note_vector[-1].duration.quarterLength)
+    time_durations.append( no_rests[-1].duration.quarterLength)
     return time_durations
 
 def durations_to_integers(float_durations, divisor): #divisor is the smallest size of note allowed (1 for crotches, 2 for quaver etc.)
@@ -44,13 +62,22 @@ def durations_to_integers(float_durations, divisor): #divisor is the smallest si
 def remove_simultaneous_notes(flat_note_vector):
     flat_note_vector = flat_note_vector.stripTies()
     corrected = stream.Stream()
-    corrected.append(flat_note_vector[0])
-    previous_offset = flat_note_vector[0].offset
-    for el in flat_note_vector[1:]:
+    previous_offset = flat_note_vector[0].offset + 1
+    for el in flat_note_vector:
         if el.offset != previous_offset:
-            corrected.append(el)
+            if el.isChord:
+                corrected.append( note.Note( el.root() ))
+            elif el.isNote:
+                corrected.append(el)
+            elif el.isRest: 
+                corrected.append(el)
+            else:
+                raise ValueError("Element is not a note, chord, or rest...")
+                return -1
+
+        
         previous_offset = el.offset
-    return corrected
+    return corrected #still keep rests
 
 def list_to_one_hot(note_values):
     one_hot_full = list()

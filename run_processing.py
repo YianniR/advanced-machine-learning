@@ -1,15 +1,16 @@
 from pre_processing import *
 from reverse_processing import *
+import os
 
-song_name = 'bach/bwv431.mxl'
+song = parse_midi_file('babiegirlchord.midi')
+song.parts[0].show()
 # we are losing ties - so notes appear shorter than they should - need to fix that
-note_sequence = flatted_single_part(parse_corpus(song_name),1) #returns a sequence of notes with offsets
+note_sequence = flatted_single_part(song,0) #returns a sequence of notes with offsets
 note_sequence_single = remove_simultaneous_notes(note_sequence)
-
+note_sequence_single = remove_rests_and_fill_time(note_sequence_single) #fixes issues with rests not being taken care of properly
 filled_durations = stretch_duration_to_fill_time(note_sequence_single)
 durations = durations_to_integers(filled_durations, 8)
-#note_sequence.show()
-note_sequence_single.show()
+
 
 #get midi values
 pitches = flat_to_midi_pitches(note_sequence_single)
@@ -45,8 +46,8 @@ song = stream_from_one_hot_pitch_duration(one_hot_pitches,one_hot_duration,8)
 song = stream_from_positional_value_representation(matrix_representation ,8,'pitch')#pitch or duration - which one is represented by position?
 
 #with the difference represenation, you must specify the starting value of whatever is being represented with differences.
-song = stream_from_one_hot_differences(one_hot_pitches_difference,one_hot_duration_difference,8,60,1.5) #pitches,duration,divisor,transposition,beginning duration
+song = stream_from_one_hot_differences(one_hot_pitches_difference,one_hot_duration_difference,8,78,1.5) #pitches,duration,divisor,transposition,beginning duration
 #song = stream_from_combined_differences(combined_differences_matrix,8)
 
 song = stream_from_combined_differences(combined_differences_matrix,8,60,'pitch')
-
+song.write('midi',fp=os.path.expanduser("~/Desktop/barbie_out.midi"))
