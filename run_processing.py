@@ -1,5 +1,6 @@
 from pre_processing import *
 from reverse_processing import *
+from file_handle import *
 import os
 
 song = parse_midi_file('babiegirlchord.midi')
@@ -30,6 +31,9 @@ one_hot_duration_difference = list_to_one_hot_differences(durations)
 
 
 combined_differences_matrix = list_to_combined_differences(pitches,durations)
+save_var("~/Desktop/var.hex", combined_differences_matrix)
+
+combined_differences_matrix = load_var("~/Desktop/var.hex")
 
 
 
@@ -50,4 +54,5 @@ song = stream_from_one_hot_differences(one_hot_pitches_difference,one_hot_durati
 #song = stream_from_combined_differences(combined_differences_matrix,8)
 
 song = stream_from_combined_differences(combined_differences_matrix,8,60,'pitch')
-song.write('midi',fp=os.path.expanduser("~/Desktop/barbie_out.midi"))
+#song.show()
+#song.write('midi',fp=os.path.expanduser("~/Desktop/barbie_out.midi"))

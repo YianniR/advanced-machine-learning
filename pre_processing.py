@@ -36,7 +36,8 @@ def remove_rests_and_fill_time(flat_note_vector):
             no_rests.append(el)
             
         elif el.isRest:
-            no_rests[-1].duration.quarterLength = no_rests[-1].duration.quarterLength + el.duration.quarterLength
+            if len(no_rests) > 1:
+                no_rests[-1].duration.quarterLength = no_rests[-1].duration.quarterLength + el.duration.quarterLength
             
         else:
             raise ValueError("Element is not a note or rest...")
@@ -50,7 +51,7 @@ def stretch_duration_to_fill_time(no_rests): #remove rests in this function
     
     for i in range(0,len(no_rests)-1): #there is a bug here that causes rests to act inccorectly. fi by checking that all elements are notes before hand
         time_durations.append( no_rests[i+1].offset - no_rests[i].offset)
-        print(no_rests[i+1].offset,no_rests[i].offset, time_durations[-1])
+        
     #final duration remains the same
     time_durations.append( no_rests[-1].duration.quarterLength)
     return time_durations
@@ -83,6 +84,11 @@ def list_to_one_hot(note_values):
     one_hot_full = list()
 
     for el in note_values:
+        if el > 127:
+            print('Duration/Pitch is out of bounds of size of 1-hot matrix. Skipping file')
+            return -1
+            
+            
         one_hot_step = np.zeros(128)
         one_hot_step[el] = 1
         one_hot_full.append(one_hot_step)
