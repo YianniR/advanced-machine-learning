@@ -16,7 +16,7 @@ def parse_midi_file(filename):
     return midi
 
 def parse_corpus(filename):
-    
+
     full_piece = corpus.parse(filename)
     return full_piece
 
@@ -34,24 +34,24 @@ def remove_rests_and_fill_time(flat_note_vector):
     for idx, el in enumerate(flat_note_vector):
         if el.isNote:
             no_rests.append(el)
-            
+
         elif el.isRest:
             if len(no_rests) > 1:
                 no_rests[-1].duration.quarterLength = no_rests[-1].duration.quarterLength + el.duration.quarterLength
-            
+
         else:
             raise ValueError("Element is not a note or rest...")
-            return -1    
-    
+            return -1
+
     return no_rests
 
 def stretch_duration_to_fill_time(no_rests): #remove rests in this function
     time_durations = list()
-    
-    
+
+
     for i in range(0,len(no_rests)-1): #there is a bug here that causes rests to act inccorectly. fi by checking that all elements are notes before hand
         time_durations.append( no_rests[i+1].offset - no_rests[i].offset)
-        
+
     #final duration remains the same
     time_durations.append( no_rests[-1].duration.quarterLength)
     return time_durations
@@ -70,13 +70,13 @@ def remove_simultaneous_notes(flat_note_vector):
                 corrected.append( note.Note( el.root() ))
             elif el.isNote:
                 corrected.append(el)
-            elif el.isRest: 
+            elif el.isRest:
                 corrected.append(el)
             else:
                 raise ValueError("Element is not a note, chord, or rest...")
                 return -1
 
-        
+
         previous_offset = el.offset
     return corrected #still keep rests
 
@@ -87,8 +87,8 @@ def list_to_one_hot(note_values):
         if el > 127:
             print('Duration/Pitch is out of bounds of size of 1-hot matrix. Skipping file')
             return -1
-            
-            
+
+
         one_hot_step = np.zeros(128)
         one_hot_step[el] = 1
         one_hot_full.append(one_hot_step)

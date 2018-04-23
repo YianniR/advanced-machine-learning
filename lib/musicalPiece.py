@@ -16,27 +16,26 @@ class MusicalPiece(object):
         self.path = ""
         self.file_extension = ""
         self.filename = ""
-        self.full_music21_stream = []
-        self.part_music21_stream = []
-        self.pitch_vector_sequence = []
-        self.duration_vector_sequence = []
+        self.full_music21_stream = stream.Stream()
         self.one_hot_vector_sequence = []
 
     def play(self):
-        midi_stream = stream.Stream(self.full_music21_stream)
-        midi_stream.show('midi')
+        # midi_stream = stream.Stream(self.full_music21_stream)
+        # midi_stream.show('midi')
+        self.full_music21_stream.show('text')
 
     def load_song(self,infile):
         path, file_extension = os.path.splitext(infile)
         self.path = path
         self.file_extension = file_extension
         self.filename = path + file_extension
-        print(file_extension)
-        if file_extension == ".midi":
+
+        print(self.path)
+
+        if self.file_extension == ".midi":
             self.parse_midi_file()
-        elif file_extension == ".mxl":
+        else:
             self.parse_corpus()
-            print("USING CORPUS")
 
     def parse_midi_file(self):
         self.full_music21_stream = converter.parse(self.filename)
@@ -49,45 +48,32 @@ class MusicalPiece(object):
         path =  self.path + ".midi"
         fp = s.write('midi', fp=path)
 
-    def get_part_of_music21_stream(self,part_number):
-        self.part_music21_stream = self.full_music21_stream.parts[part_number].flat.notes
-
-    def get_pitch_vector_sequence(self):
-        for element in self.part_music21_stream:
-            self.pitch_vector_sequence.append(element.pitch.midi)
-
-    def get_duration_vector_sequence(self,divisor):
-        for i in range(0,len(self.part_music21_stream)-1):
-            self.duration_vector_sequence.append( self.part_music21_stream[i+1].offset - self.part_music21_stream[i].offset)
-        #final duration remains the same
-        int_durations = np.array(self.part_music21_stream[-1].duration.quarterLength)*divisor
-        self.duration_vector_sequence.append(int_durations)
-
-    def make_one_hot(self,n_notes,keep_chords = False):
+    def make_pitches_one_hot(self,n_notes=127,keep_chords = False):
         one_hot_step = np.zeros(n_notes)
 
         #Loop over whole song. Element can be a note or a chord.
         #If the offset changes, add the one hot step to the song list.
-        previus_offset = 0.0
+        previous_offset = 0.0
         for element in self.full_music21_stream.flat.notes:
-            if element.offset != previus_offset:
-                previus_offset = element.offset
+            if element.offset != previous_offset:
+                previous_offset = element.offset
                 self.one_hot_vector_sequence.append(one_hot_step)
                 one_hot_step = np.zeros(n_notes)
 
             #If a note is found, add it to the one hot step
             if isinstance(element, note.Note):
-                one_hot_step[element.pitch.midi] = element.beatDuration.quarterLength
+                one_hot_step[element.pitch.midi] = 1#element.beatDuration.quarterLength
 
             #If a chord is found, add every note of the chord.
             elif keep_chords is True:
                 if isinstance(element, chord.Chord):
                     for chord_note in element.pitches:
-                        one_hot_step[chord_note.midi] = element.beatDuration.quarterLength
+                        one_hot_step[chord_note.midi] = 1#element.beatDuration.quarterLength
+
 
     def make_targets(self, step_size, n_notes=127):
         #Each song is a batch
-        self.make_one_hot(n_notes,keep_chords=True)
+        self.make_pitches_one_hot(n_notes,keep_chords=True)
 
         n_steps = int(len(self.one_hot_vector_sequence)/step_size)
         self.training_data = Data(n_steps, step_size, n_notes)
