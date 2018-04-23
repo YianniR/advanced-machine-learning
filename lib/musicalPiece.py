@@ -2,6 +2,12 @@ from music21 import converter, instrument, note, chord, stream, corpus
 import numpy as np
 import pickle
 import os
+'''
+This library allows the parsing of midi files and pieces of music from the music21
+library. It also allows for the convertion of these to multiple other data formats
+to aid the training of machine learning algorithms.
+
+'''
 
 class Data(object):
 

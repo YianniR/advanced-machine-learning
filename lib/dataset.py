@@ -3,6 +3,10 @@ import numpy as np
 from random import shuffle
 from lib.musicalPiece import *
 from lib.file_handle import *
+'''
+This library allows for the creation of .pickle files which will include datasets
+of training and test data, made from MusicalPieces.
+'''
 
 class Dataset(object):
 
@@ -15,11 +19,12 @@ class Dataset(object):
         self.test = list()
 
     def make_dataset(self,trainingSplit):
+        #Make another function to create datasets from midi files in a given folder
         print("Making Dataset!")
 
         bundle = corpus.getComposer(self.composer,fileExtensions='mxl') #get all bach pieces
         shuffle(bundle)#Shuffle to make dataset less likely to create a bias
-        bundle = bundle[:10]
+        bundle = bundle[:10] #Limit dataset size for testing
 
         tr_bundle = bundle[:int(len(bundle)*trainingSplit)]
         ts_bundle = bundle[int(len(bundle)*trainingSplit)+1:]

@@ -2,20 +2,20 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.contrib import rnn
 
-def set_up_placeholders(n_steps,n_inputs,n_neurons,n_outputs,learning_rate,batch_size):
+def set_up_placeholders(n_steps,n_inputs,n_outputs):
 
     tf.reset_default_graph()
 
     # Height by Width
-    input_ = tf.placeholder('float',[None,n_steps,n_input_nodes])
+    input_ = tf.placeholder('float',[None,n_steps,n_inputs])
     target_ = tf.placeholder('float',[None])
 
     return input_,target_
 
 def rnn_model(input_,rnn_size,n_classes):
-    basic_cell = rnn.BasicRNNCell(num_units=n_neurons)
+    basic_cell = rnn.BasicRNNCell(num_units=rnn_size)
     outputs, states = tf.nn.dynamic_rnn(basic_cell, input_, dtype=tf.float32)
-    logits = tf.layers.dense(states, n_outputs)
+    logits = tf.layers.dense(states, n_classes)
 
     return logits
 
