@@ -1,5 +1,9 @@
 import tensorflow as tf
 import numpy as np
+from lib.musicalPiece import *
+from lib.dataset import *
+from lib.file_handle import *
+
 
 # =============================================================================
 # Construction Phase
@@ -34,7 +38,17 @@ init = tf.global_variables_initializer()
 n_epochs = 5
 batch_size = 150
 
-with tf.Session() as sess:
-    init.run()
-    for epoch in range(n_epochs):
+#Set up dataset
+data = Dataset("Dataset 1","bach","Just the one hot vectors, with no pre-processing","28/5/2018")
+data.load("Bach.pickle")
+
+#Split input and targets. (I'll make a function to do that, also idk if this is the right way)
+train_x = data.train[0:-1]
+train_y = data.train[1:]
+test_x = data.test[0:-1]
+test_y = data.test[1:]
+
+#with tf.Session() as sess:
+#    init.run()
+#    for epoch in range(n_epochs):
         
