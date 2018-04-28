@@ -54,7 +54,7 @@ class MusicalPiece(object):
         path =  self.path + ".midi"
         fp = s.write('midi', fp=path)
 
-    def make_pitches_one_hot(self,n_notes=127,keep_chords = False):
+    def make_pitches_one_hot(self,n_notes=127,keep_chords = True):
         one_hot_step = np.zeros(n_notes)
 
         #Loop over whole song. Element can be a note or a chord.

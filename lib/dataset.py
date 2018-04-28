@@ -23,8 +23,9 @@ class Dataset(object):
         print("Making Dataset!")
 
         bundle = corpus.getComposer(self.composer,fileExtensions='mxl') #get all bach pieces
+        print(len(bundle))
         shuffle(bundle)#Shuffle to make dataset less likely to create a bias
-        bundle = bundle[:10] #Limit dataset size for testing
+        #bundle = bundle[:9] #Limit dataset size for testing
 
         tr_bundle = bundle[:int(len(bundle)*trainingSplit)]
         ts_bundle = bundle[int(len(bundle)*trainingSplit)+1:]
@@ -32,27 +33,26 @@ class Dataset(object):
         for idx, corpus_file_name in enumerate(tr_bundle):
             piece = MusicalPiece()
             piece.load_song(corpus_file_name)
-
-            piece.make_pitches_one_hot(keep_chords=False)
-            self.train.append(piece)
+            piece.make_pitches_one_hot(keep_chords=True)
+            self.train = self.train + piece.one_hot_vector_sequence
 
         for idx, corpus_file_name in enumerate(ts_bundle):
             piece = MusicalPiece()
             piece.load_song(corpus_file_name)
-            piece.make_pitches_one_hot(keep_chords=False)
-            self.test.append(piece)
+            piece.make_pitches_one_hot(keep_chords=True)
+            self.test = self.test + piece.one_hot_vector_sequence
 
         print("Dataset complete!")
 
     def save(self,filename):
 
-        for idx, piece in enumerate(self.train):
-            sf = freezeThaw.StreamFreezer(self.train[idx].full_music21_stream)
-            sf.setupSerializationScaffold()
-
-        for idx, piece in enumerate(self.test):
-            sf = freezeThaw.StreamFreezer(self.test[idx].full_music21_stream)
-            sf.setupSerializationScaffold()
+        # for idx, piece in enumerate(self.train):
+        #     sf = freezeThaw.StreamFreezer(self.train[idx].full_music21_stream)
+        #     sf.setupSerializationScaffold()
+        #
+        # for idx, piece in enumerate(self.test):
+        #     sf = freezeThaw.StreamFreezer(self.test[idx].full_music21_stream)
+        #     sf.setupSerializationScaffold()
 
         save_var(filename,self)
         print("Dataset saved!")
@@ -62,12 +62,12 @@ class Dataset(object):
         self.train = load_var(filename).train
         self.test = load_var(filename).test
 
-        sf =freezeThaw.StreamThawer()
-
-        for idx, piece in enumerate(self.train):
-            sf.teardownSerializationScaffold(self.train[idx].full_music21_stream)
-
-        for idx, piece in enumerate(self.test):
-            sf.teardownSerializationScaffold(self.test[idx].full_music21_stream)
+        # sf = freezeThaw.StreamThawer()
+        #
+        # for idx, piece in enumerate(self.train):
+        #     sf.teardownSerializationScaffold(self.train[idx].full_music21_stream)
+        #
+        # for idx, piece in enumerate(self.test):
+        #     sf.teardownSerializationScaffold(self.test[idx].full_music21_stream)
 
         print("Dataset loaded!")
