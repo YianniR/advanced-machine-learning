@@ -7,8 +7,8 @@ def set_up_placeholders(n_steps,n_inputs,n_outputs):
     tf.reset_default_graph()
 
     # Height by Width
-    input_ = tf.placeholder('float',[None,n_steps,n_inputs])
-    target_ = tf.placeholder('float',[None])
+    input_ = tf.placeholder('float',[None,n_inputs])
+    target_ = tf.placeholder('float',[None,n_outputs])
 
     return input_,target_
 
@@ -47,7 +47,7 @@ def multilayer_perceptron_model(input_,n_input_nodes,n_nodes_hl1,n_nodes_hl2,n_n
     return output
 
 def train(x,y,logits,train_x, train_y, test_x, test_y,batch_size,num_epochs,learning_rate=0.001):
-    xentropy = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits,labels=y)
+    xentropy = tf.nn.softmax_cross_entropy_with_logits(logits=logits,labels=y)
     cost = tf.reduce_mean(xentropy)
     optimizer = tf.train.AdamOptimizer(learning_rate).minimize(cost)
 
