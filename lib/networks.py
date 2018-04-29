@@ -68,8 +68,11 @@ def batch_maker(train_x,train_y,n_steps,batch_size):
             step_start = j;
             step_end = j + n_steps
 
-            step_x.append(train_x[step_start:step_end])
-            step_y.append(train_y[step_start:step_end])
+            try:
+                step_x.append(train_x[step_start:step_end])
+                step_y.append(train_y[step_start:step_end])
+            except:
+                continue
 
             j += n_steps
 
@@ -90,14 +93,14 @@ def train(x,y,logits,train_x, train_y, test_x, test_y,n_steps,batch_size,num_epo
         print("Making Batches")
         batches_x,batches_y = batch_maker(train_x,train_y,n_steps,batch_size)
 
-        i = 0
+        print("Training for",num_epochs,"epochs")
         for epoch in range(num_epochs):
-            print('Epoch', epoch, ' started out of', num_epochs)
             epoch_loss = 0
 
-            n_batches = len(train_x)/batch_size
+            n_batches = int(len(train_x)/batch_size)
+            i = 0
             while i < n_batches:
-                print('Batch', i, ' started out of', n_batches)
+                print('Epoch', epoch ,', Batch', i, ' out of', n_batches,end='\r')
                 batch_x = batches_x[i]
                 batch_y = batches_y[i]
 
@@ -106,7 +109,7 @@ def train(x,y,logits,train_x, train_y, test_x, test_y,n_steps,batch_size,num_epo
 
                 i += 1
 
-            print('Epoch', epoch, 'completed out of', num_epochs, 'loss:',epoch_loss)
+            print('Epoch', epoch, 'completed. loss:',epoch_loss)
 
         correct = tf.equal(tf.argmax(logits,1),tf.argmax(y,1))
         accuracy = tf.reduce_mean(tf.cast(correct,'float'))

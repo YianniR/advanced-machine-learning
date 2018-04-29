@@ -8,13 +8,13 @@ from pprint import pprint
 def main():
 
     #Set up parameters (can put those in a config file and parse them.)
-    batch_size = 30
-    n_steps   = 10
+    batch_size = 200
+    n_steps   = 30
     n_inputs  = 127
     n_neurons = 150
     n_outputs = 127
     learning_rate = 0.001
-    num_epochs = 200
+    num_epochs = 10
 
     #Set up placeholders
     input_,target_ = set_up_placeholders(n_inputs,n_steps,n_outputs)
