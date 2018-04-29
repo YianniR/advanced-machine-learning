@@ -14,14 +14,6 @@ def set_up_placeholders(n_inputs,n_steps,n_outputs):
 
 def rnn_model(input_,rnn_size,n_outputs):
 
-    # RNN output node weights and biases
-    weights = {
-        'out': tf.Variable(tf.random_normal([rnn_size, n_outputs]))
-    }
-    biases = {
-        'out': tf.Variable(tf.random_normal([n_outputs]))
-    }
-
     cell = tf.contrib.rnn.BasicRNNCell(num_units=rnn_size, activation=tf.nn.relu) #hiddel layer for 1 time step
     outputs, states = tf.nn.dynamic_rnn(cell, input_, dtype=tf.float32) # Use hidden layer for n_steps timesteps
     logits = tf.layers.dense(outputs, n_outputs, name='predictions')
@@ -111,6 +103,9 @@ def train(x,y,logits,train_x, train_y, test_x, test_y,n_steps,batch_size,num_epo
 
             print('Epoch', epoch, 'completed. loss:',epoch_loss)
 
-        correct = tf.equal(tf.argmax(logits,1),tf.argmax(y,1))
-        accuracy = tf.reduce_mean(tf.cast(correct,'float'))
-        print('Accuracy:', accuracy.eval({x:test_x,y:test_y}))
+        batches_x,batches_y = batch_maker(test_x,test_y,n_steps,batch_size)
+
+        prediction = tf.nn.softmax(logits)
+        correct_pred = tf.equal(tf.argmax(prediction, 1), tf.argmax(y, 1))
+        accuracy = tf.reduce_mean(tf.cast(correct_pred, tf.float32))
+        print("Testing Accuracy:", sess.run(accuracy, feed_dict={x: batch_x,y: batch_y}))
