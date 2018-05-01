@@ -1,6 +1,7 @@
 import numpy as np
 import tensorflow as tf
 from tensorflow.contrib import rnn
+from tqdm import tqdm
 
 def set_up_placeholders(n_inputs,n_steps,n_outputs):
 
@@ -82,17 +83,17 @@ def train(x,y,logits,train_x, train_y, test_x, test_y,n_steps,batch_size,num_epo
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
 
-        print("Making Batches")
+        print("Making Batches...")
         batches_x,batches_y = batch_maker(train_x,train_y,n_steps,batch_size)
 
-        print("Training for",num_epochs,"epochs")
-        for epoch in range(num_epochs):
+        print("Training for",num_epochs,"epochs...")
+        for epoch in tqdm(range(num_epochs)):
             epoch_loss = 0
 
             n_batches = int(len(train_x)/batch_size)
             i = 0
             while i < n_batches:
-                print('Epoch', epoch ,', Batch', i, ' out of', n_batches,end='\r')
+                #print('Epoch', epoch ,', Batch', i, ' out of', n_batches,end='\r')
                 batch_x = batches_x[i]
                 batch_y = batches_y[i]
 
@@ -101,7 +102,7 @@ def train(x,y,logits,train_x, train_y, test_x, test_y,n_steps,batch_size,num_epo
 
                 i += 1
 
-            print('Epoch', epoch, 'completed. loss:',epoch_loss)
+            #print('Epoch', epoch, 'completed. loss:',epoch_loss)
 
         batches_x,batches_y = batch_maker(test_x,test_y,n_steps,batch_size)
 
