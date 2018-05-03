@@ -1,0 +1,2 @@
+model_checkpoint_path: "C:\\Users\\Laptop\\workspace_python\\advanced-machine-learning\\lib/models/rnn.ckpt"
+all_model_checkpoint_paths: "C:\\Users\\Laptop\\workspace_python\\advanced-machine-learning\\lib/models/rnn.ckpt"
