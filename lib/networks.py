@@ -19,34 +19,23 @@ def rnn_model(input_,rnn_size,n_outputs):
     outputs, states = tf.nn.dynamic_rnn(cell, input_, dtype=tf.float32) # Use hidden layer for n_steps timesteps
     logits = tf.layers.dense(outputs, n_outputs, name='predictions')
 
-    return logits
+    return cell, outputs, states, logits
 
-def multilayer_perceptron_model(input_,n_input_nodes,n_nodes_hl1,n_nodes_hl2,n_nodes_hl3,n_classes):
-    hidden_layer_1 = {'weights': tf.Variable(tf.random_normal([n_input_nodes,n_nodes_hl1])),
-    'biases':  tf.Variable(tf.random_normal([n_nodes_hl1]))}
-
-    hidden_layer_2 = {'weights': tf.Variable(tf.random_normal([n_nodes_hl1,n_nodes_hl2])),
-    'biases':  tf.Variable(tf.random_normal([n_nodes_hl2]))}
-
-    hidden_layer_3 = {'weights': tf.Variable(tf.random_normal([n_nodes_hl2,n_nodes_hl3])),
-    'biases':  tf.Variable(tf.random_normal([n_nodes_hl3]))}
-
-    output_layer = {'weights': tf.Variable(tf.random_normal([n_nodes_hl3,n_classes])),
-    'biases':  tf.Variable(tf.random_normal([n_classes]))}
-
-
-    l1 = tf.add(tf.matmul(input_,hidden_layer_1['weights']),hidden_layer_1['biases'])
-    l1 = tf.nn.relu(l1)
-
-    l2 = tf.add(tf.matmul(l1,hidden_layer_2['weights']),hidden_layer_2['biases'])
-    l2 = tf.nn.relu(l2)
-
-    l3 = tf.add(tf.matmul(l2,hidden_layer_3['weights']),hidden_layer_3['biases'])
-    l3 = tf.nn.relu(l3)
-
-    output = tf.matmul(l3,output_layer['weights']) + output_layer['biases']
-
-    return output
+def batch_maker2(x, y, n_steps, batch_size):
+    x, y = np.array(x), np.array(y)
+    n_batches = int(x[:,0].size//batch_size)
+    n_inputs = x[0, :].size
+    
+    X_batch = np.empty([n_batches, batch_size, n_steps, n_inputs])
+    Y_batch = np.empty([n_batches, batch_size, n_inputs])
+    
+    for batch in range(n_batches):
+        for count_size in range(batch_size):
+            x_start = (batch*batch_size)+count_size
+            X_batch[batch, count_size, :] = x[x_start: x_start+n_steps, :]
+            Y_batch[batch, count_size, :] = y[(batch*batch_size)+count_size, :]
+    
+    return X_batch, Y_batch, n_batches
 
 def batch_maker(train_x,train_y,n_steps,batch_size):
     i=0
@@ -75,13 +64,55 @@ def batch_maker(train_x,train_y,n_steps,batch_size):
 
     return batches_x,batches_y
 
+def train_v2(x,y,logits,train_x, train_y, test_x, test_y,n_steps,batch_size,num_epochs,learning_rate=0.001):
+    
+    xentropy = tf.nn.softmax_cross_entropy_with_logits_v2(logits=logits,labels=y)
+    cost = tf.reduce_mean(xentropy)
+    optimizer = tf.train.AdamOptimizer(learning_rate)
+    training_op = optimizer.minimize(cost)
+    prediction = tf.nn.softmax(logits)
+    
+    correct_pred = tf.equal(tf.argmax(prediction, 1), tf.argmax(y, 1))
+    accuracy = tf.reduce_mean(tf.cast(correct_pred, tf.float32))
+    
+    init = tf.global_variables_initializer() #initialise parameters
+    saver = tf.train.Saver()
+    save_path = "/tmp/test.ckpt"
+    
+    with tf.Session() as sess:
+        init.run()
+
+        print("Making Batches...")
+        batches_x,batches_y = batch_maker(train_x,train_y,n_steps,batch_size)
+
+        print("Training for",num_epochs,"epochs...")
+        for epoch in tqdm(range(num_epochs)):
+            n_batches = int(len(train_x)/batch_size)
+            i = 0
+            
+            while i < n_batches:
+                batch_x = batches_x[i]
+                batch_y = batches_y[i]
+                sess.run(training_op, feed_dict = {x: batch_x,y: batch_y})
+                i += 1
+            
+#            acc_train = accuracy.eval(feed_dict = {x: batch_x,y: batch_y})
+#            print('Epoch', epoch, 'completed. Accuracy:',acc_train)
+            
+        batches_x,batches_y = batch_maker(test_x,test_y,n_steps,batch_size)
+        print("Testing Accuracy:", sess.run(accuracy, feed_dict={x: batch_x,y: batch_y}))
+        saver.save(sess, save_path=save_path)
+        
+    return save_path
+
 def train(x,y,logits,train_x, train_y, test_x, test_y,n_steps,batch_size,num_epochs,learning_rate=0.001):
     xentropy = tf.nn.softmax_cross_entropy_with_logits_v2(logits=logits,labels=y)
     cost = tf.reduce_mean(xentropy)
     optimizer = tf.train.AdamOptimizer(learning_rate).minimize(cost)
-
+    init = tf.global_variables_initializer() #initialise parameters
+    
     with tf.Session() as sess:
-        sess.run(tf.global_variables_initializer())
+        init.run()
 
         print("Making Batches...")
         batches_x,batches_y = batch_maker(train_x,train_y,n_steps,batch_size)
@@ -102,7 +133,7 @@ def train(x,y,logits,train_x, train_y, test_x, test_y,n_steps,batch_size,num_epo
 
                 i += 1
 
-            #print('Epoch', epoch, 'completed. loss:',epoch_loss)
+#            print('Epoch', epoch, 'completed. loss:',epoch_loss)
 
         batches_x,batches_y = batch_maker(test_x,test_y,n_steps,batch_size)
 
@@ -110,3 +141,30 @@ def train(x,y,logits,train_x, train_y, test_x, test_y,n_steps,batch_size,num_epo
         correct_pred = tf.equal(tf.argmax(prediction, 1), tf.argmax(y, 1))
         accuracy = tf.reduce_mean(tf.cast(correct_pred, tf.float32))
         print("Testing Accuracy:", sess.run(accuracy, feed_dict={x: batch_x,y: batch_y}))
+
+def multilayer_perceptron_model(input_,n_input_nodes,n_nodes_hl1,n_nodes_hl2,n_nodes_hl3,n_classes):
+    hidden_layer_1 = {'weights': tf.Variable(tf.random_normal([n_input_nodes,n_nodes_hl1])),
+    'biases':  tf.Variable(tf.random_normal([n_nodes_hl1]))}
+
+    hidden_layer_2 = {'weights': tf.Variable(tf.random_normal([n_nodes_hl1,n_nodes_hl2])),
+    'biases':  tf.Variable(tf.random_normal([n_nodes_hl2]))}
+
+    hidden_layer_3 = {'weights': tf.Variable(tf.random_normal([n_nodes_hl2,n_nodes_hl3])),
+    'biases':  tf.Variable(tf.random_normal([n_nodes_hl3]))}
+
+    output_layer = {'weights': tf.Variable(tf.random_normal([n_nodes_hl3,n_classes])),
+    'biases':  tf.Variable(tf.random_normal([n_classes]))}
+
+
+    l1 = tf.add(tf.matmul(input_,hidden_layer_1['weights']),hidden_layer_1['biases'])
+    l1 = tf.nn.relu(l1)
+
+    l2 = tf.add(tf.matmul(l1,hidden_layer_2['weights']),hidden_layer_2['biases'])
+    l2 = tf.nn.relu(l2)
+
+    l3 = tf.add(tf.matmul(l2,hidden_layer_3['weights']),hidden_layer_3['biases'])
+    l3 = tf.nn.relu(l3)
+
+    output = tf.matmul(l3,output_layer['weights']) + output_layer['biases']
+
+    return output

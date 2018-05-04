@@ -36,8 +36,8 @@ def main(args):
 
     # #Setup model and train it
     #prediction = multilayer_perceptron_model(input_,n_inputs,150,100,75,n_outputs)
-    prediction = rnn_model(input_,n_steps,n_outputs)
-    train(input_,target_,prediction,train_x, train_y, test_x, test_y,n_steps,batch_size,n_epochs)
+    cell, output, states, prediction = rnn_model(input_,n_steps,n_outputs)
+    save = train_v2(input_,target_,prediction,train_x, train_y, test_x, test_y,n_steps,batch_size,n_epochs)
 
 if __name__ == "__main__":
     #Set up argument parser
