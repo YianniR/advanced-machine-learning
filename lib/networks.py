@@ -2,6 +2,8 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.contrib import rnn
 from tqdm import tqdm
+from pprint import pprint
+import os
 
 def set_up_placeholders(n_inputs,n_steps,n_outputs):
 
@@ -17,25 +19,59 @@ def rnn_model(input_,rnn_size,n_outputs):
 
     cell = tf.contrib.rnn.BasicRNNCell(num_units=rnn_size, activation=tf.nn.relu) #hiddel layer for 1 time step
     outputs, states = tf.nn.dynamic_rnn(cell, input_, dtype=tf.float32) # Use hidden layer for n_steps timesteps
-    logits = tf.layers.dense(outputs, n_outputs, name='predictions')
+    l1 = tf.layers.dense(outputs, 180)
+    logits = tf.layers.dense(l1, n_outputs, name='predictions')
 
     return cell, outputs, states, logits
 
 def batch_maker2(x, y, n_steps, batch_size):
     x, y = np.array(x), np.array(y)
     n_batches = int(x[:,0].size//batch_size)
+    print(n_batches)
     n_inputs = x[0, :].size
     
     X_batch = np.empty([n_batches, batch_size, n_steps, n_inputs])
+    print(X_batch.shape)
     Y_batch = np.empty([n_batches, batch_size, n_inputs])
+    print(Y_batch.shape)
     
     for batch in range(n_batches):
         for count_size in range(batch_size):
             x_start = (batch*batch_size)+count_size
-            X_batch[batch, count_size, :] = x[x_start: x_start+n_steps, :]
-            Y_batch[batch, count_size, :] = y[(batch*batch_size)+count_size, :]
-    
+            try:
+                X_batch[batch, count_size, :] = x[x_start: x_start+n_steps, :]
+            except:
+                X_batch[batch, count_size, :] = np.zeros_like(X_batch[batch, count_size, :])
+            try:
+                Y_batch[batch, count_size, :] = y[(batch*batch_size)+count_size, :]
+            except:
+                Y_batch[batch, count_size, :] = np.zeros_like(Y_batch[batch, count_size, :])
     return X_batch, Y_batch, n_batches
+
+def seed_maker(train_x,train_y,n_steps,batch_size):
+
+    batches_x = list()
+    batches_y = list()
+
+    j=0
+    step_x = []
+    step_y = []
+    while j < batch_size:
+        step_start = j;
+        step_end = j + n_steps
+
+        try:
+            step_x.append(train_x[step_start:step_end])
+            step_y.append(train_y[step_start:step_end])
+        except:
+            continue
+
+        j += n_steps
+
+    batches_x = batches_x + step_x
+    batches_y = batches_y + step_x
+
+    return batches_x,batches_y
 
 def batch_maker(train_x,train_y,n_steps,batch_size):
     i=0
@@ -110,7 +146,8 @@ def train(x,y,logits,train_x, train_y, test_x, test_y,n_steps,batch_size,num_epo
     cost = tf.reduce_mean(xentropy)
     optimizer = tf.train.AdamOptimizer(learning_rate).minimize(cost)
     init = tf.global_variables_initializer() #initialise parameters
-    
+    saver = tf.train.Saver()
+
     with tf.Session() as sess:
         init.run()
 
@@ -124,7 +161,6 @@ def train(x,y,logits,train_x, train_y, test_x, test_y,n_steps,batch_size,num_epo
             n_batches = int(len(train_x)/batch_size)
             i = 0
             while i < n_batches:
-                #print('Epoch', epoch ,', Batch', i, ' out of', n_batches,end='\r')
                 batch_x = batches_x[i]
                 batch_y = batches_y[i]
 
@@ -133,14 +169,22 @@ def train(x,y,logits,train_x, train_y, test_x, test_y,n_steps,batch_size,num_epo
 
                 i += 1
 
+
 #            print('Epoch', epoch, 'completed. loss:',epoch_loss)
 
         batches_x,batches_y = batch_maker(test_x,test_y,n_steps,batch_size)
+
+        # Save the variables to disk.
+        dir_path = os.path.dirname(os.path.realpath(__file__))
+        save_path = saver.save(sess, dir_path + "/model/rnn.ckpt")
+        print("Model saved in path: %s" % save_path)
+
 
         prediction = tf.nn.softmax(logits)
         correct_pred = tf.equal(tf.argmax(prediction, 1), tf.argmax(y, 1))
         accuracy = tf.reduce_mean(tf.cast(correct_pred, tf.float32))
         print("Testing Accuracy:", sess.run(accuracy, feed_dict={x: batch_x,y: batch_y}))
+
 
 def multilayer_perceptron_model(input_,n_input_nodes,n_nodes_hl1,n_nodes_hl2,n_nodes_hl3,n_classes):
     hidden_layer_1 = {'weights': tf.Variable(tf.random_normal([n_input_nodes,n_nodes_hl1])),
@@ -168,3 +212,21 @@ def multilayer_perceptron_model(input_,n_input_nodes,n_nodes_hl1,n_nodes_hl2,n_n
     output = tf.matmul(l3,output_layer['weights']) + output_layer['biases']
 
     return output
+
+def run(x,y,seed,logits,n_steps,batch_size):
+    # Add ops to save and restore only `v2` using the name "v2"
+    saver = tf.train.Saver()
+    # Use the saver object normally after that.
+    with tf.Session() as sess:
+        # Initialize v1 since the saver will not.
+        sess.run(tf.global_variables_initializer())
+
+        dir_path = os.path.dirname(os.path.realpath(__file__))
+        saver.restore(sess, dir_path + "/model/rnn.ckpt")
+
+        batch_x, batch_y = seed_maker(seed,seed,n_steps,1)
+
+        print(batch_x)
+        prediction = tf.nn.softmax(logits)
+        np.set_printoptions(threshold=np.inf)
+        print(sess.run(prediction, feed_dict={x: batch_x, y: batch_y}))

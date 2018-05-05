@@ -2,7 +2,6 @@ from lib.networks import *
 from lib.musicalPiece import *
 from lib.dataset import *
 from lib.file_handle import *
-from tqdm import tqdm
 import argparse
 
 def main(args):
@@ -30,18 +29,25 @@ def main(args):
     train_y = data.train[1:]
     test_x = data.test[0:-1]
     test_y = data.test[1:]
+    seed = test_y[0:n_steps]
 
     print("Train Length:" + str(len(data.train)))
     print("Test Length :" + str(len(data.test)))
 
     # #Setup model and train it
     #prediction = multilayer_perceptron_model(input_,n_inputs,150,100,75,n_outputs)
+<<<<<<< HEAD
     cell, output, states, prediction = rnn_model(input_,n_steps,n_outputs)
     save = train_v2(input_,target_,prediction,train_x, train_y, test_x, test_y,n_steps,batch_size,n_epochs)
+=======
+    logits = rnn_model(input_,n_steps,n_outputs)
+    train(input_,target_,logits,train_x, train_y, test_x, test_y,n_steps,batch_size,n_epochs)
+    run(input_,target_,seed,logits,n_steps,batch_size)
+>>>>>>> ef45218692e781aed32424fab2daa660f2a4fef2
 
 if __name__ == "__main__":
     #Set up argument parser
-	parser = argparse.ArgumentParser(description="Use OpenFace to get the facial landmarks of images in a folder.")
+	parser = argparse.ArgumentParser(description="Run an amazing neural network that makes music stuffs.")
 	group = parser.add_mutually_exclusive_group()
 
 	#Add parser arguments
