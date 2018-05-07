@@ -6,6 +6,8 @@ import argparse
 
 def main(args):
 
+    input_dir = args.input_dir
+
     #Set up parameters (can put those in a config file and parse them.)
     batch_size = int(args.batch_size)
     n_steps   = int(args.num_steps)
@@ -37,8 +39,10 @@ def main(args):
     # #Setup model and train it
 
     cell, outputs, states, logits = rnn_model(input_,n_steps,n_outputs)
-    train(input_,target_,logits,train_x, train_y, test_x, test_y,n_steps,batch_size,n_epochs)
-    #run(10,n_steps,"\model\\rnn.ckpt")
+    if not input_dir:
+        train(input_,target_,logits,train_x, train_y, test_x, test_y,n_steps,batch_size,n_epochs)
+    else:
+        run(10,n_steps,input_dir)
 
 if __name__ == "__main__":
     #Set up argument parser
@@ -49,6 +53,7 @@ if __name__ == "__main__":
 	group.add_argument("-e", "--num_epochs", action="store",default = 100, nargs='?', help='Set num of epochs')
 	group.add_argument("-b", "--batch_size", action="store",default = 500, nargs='?', help='Set batch size')
 	group.add_argument("-s", "--num_steps", action="store", default = 25, nargs='?', help='Set num of steps')
+	group.add_argument("-i", "--input_dir", action="store", default = "", nargs='?', help='Input dir to run')
 
 	#Parse arguments and start main
 	args = parser.parse_args()

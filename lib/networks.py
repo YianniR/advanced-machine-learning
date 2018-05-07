@@ -165,7 +165,7 @@ def train(x,y,logits,train_x, train_y, test_x, test_y,n_steps,batch_size,num_epo
 
                 _, c = sess.run([optimizer,cost],feed_dict = {x: batch_x,y: batch_y})
                 epoch_loss += c
-
+                print(epoch_loss)
                 i += 1
 
         batches_x,batches_y = batch_maker(test_x,test_y,n_steps,batch_size)
@@ -176,14 +176,14 @@ def train(x,y,logits,train_x, train_y, test_x, test_y,n_steps,batch_size,num_epo
         logdir = "{}/run-{}/".format(root_logdir, now)
 
         directory = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-        path = directory + "\log\LSTM_layer_2_model_{}.ckpt".format(now)
+        path = directory + "\log\\rnn{}.ckpt".format(now)
 
         # Save the variables to disk.
         save_path = saver.save(sess, path)
         print("Model saved in path: %s" % save_path)
 
 def run(length,n_steps,dir_to_load):
-    dir_path = os.path.dirname(os.path.realpath(__file__))
+    dir_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
     saver = tf.train.import_meta_graph(dir_path + dir_to_load + ".meta")
 
     with tf.Session() as sess:
