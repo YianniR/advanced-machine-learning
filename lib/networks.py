@@ -29,12 +29,12 @@ def batch_maker2(x, y, n_steps, batch_size):
     n_batches = int(x[:,0].size//batch_size)
     print(n_batches)
     n_inputs = x[0, :].size
-    
+
     X_batch = np.empty([n_batches, batch_size, n_steps, n_inputs])
     print(X_batch.shape)
     Y_batch = np.empty([n_batches, batch_size, n_inputs])
     print(Y_batch.shape)
-    
+
     for batch in range(n_batches):
         for count_size in range(batch_size):
             x_start = (batch*batch_size)+count_size
@@ -101,20 +101,20 @@ def batch_maker(train_x,train_y,n_steps,batch_size):
     return batches_x,batches_y
 
 def train_v2(x,y,logits,train_x, train_y, test_x, test_y,n_steps,batch_size,num_epochs,learning_rate=0.001):
-    
+
     xentropy = tf.nn.softmax_cross_entropy_with_logits_v2(logits=logits,labels=y)
     cost = tf.reduce_mean(xentropy)
     optimizer = tf.train.AdamOptimizer(learning_rate)
     training_op = optimizer.minimize(cost)
     prediction = tf.nn.softmax(logits)
-    
+
     correct_pred = tf.equal(tf.argmax(prediction, 1), tf.argmax(y, 1))
     accuracy = tf.reduce_mean(tf.cast(correct_pred, tf.float32))
-    
+
     init = tf.global_variables_initializer() #initialise parameters
     saver = tf.train.Saver()
     save_path = "/tmp/test.ckpt"
-    
+
     with tf.Session() as sess:
         init.run()
 
@@ -125,20 +125,20 @@ def train_v2(x,y,logits,train_x, train_y, test_x, test_y,n_steps,batch_size,num_
         for epoch in tqdm(range(num_epochs)):
             n_batches = int(len(train_x)/batch_size)
             i = 0
-            
+
             while i < n_batches:
                 batch_x = batches_x[i]
                 batch_y = batches_y[i]
                 sess.run(training_op, feed_dict = {x: batch_x,y: batch_y})
                 i += 1
-            
+
 #            acc_train = accuracy.eval(feed_dict = {x: batch_x,y: batch_y})
 #            print('Epoch', epoch, 'completed. Accuracy:',acc_train)
-            
+
         batches_x,batches_y = batch_maker(test_x,test_y,n_steps,batch_size)
         print("Testing Accuracy:", sess.run(accuracy, feed_dict={x: batch_x,y: batch_y}))
         saver.save(sess, save_path=save_path)
-        
+
     return save_path
 
 def train(x,y,logits,train_x, train_y, test_x, test_y,n_steps,batch_size,num_epochs,learning_rate=0.001):
@@ -213,20 +213,25 @@ def multilayer_perceptron_model(input_,n_input_nodes,n_nodes_hl1,n_nodes_hl2,n_n
 
     return output
 
-def run(x,y,seed,logits,n_steps,batch_size):
-    # Add ops to save and restore only `v2` using the name "v2"
-    saver = tf.train.Saver()
-    # Use the saver object normally after that.
+def run(length,n_steps,dir_to_load):
+
+    dir_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+    saver = tf.train.import_meta_graph(dir_path + dir_to_load)
+    x = tf.get_default_graph().get_tensor_by_name("inputs:0")
+    logits = tf.get_default_graph().get_tensor_by_name("logits:0")
+
+
     with tf.Session() as sess:
-        # Initialize v1 since the saver will not.
-        sess.run(tf.global_variables_initializer())
+        #batch_x, batch_y = seed_maker(seed,seed,n_steps,1)
 
-        dir_path = os.path.dirname(os.path.realpath(__file__))
-        saver.restore(sess, dir_path + "/model/rnn.ckpt")
+        step = [0.]*127
+        print(step)
+        sequence = [step]*n_steps
+        print(sequence)
 
-        batch_x, batch_y = seed_maker(seed,seed,n_steps,1)
-
-        print(batch_x)
-        prediction = tf.nn.softmax(logits)
-        np.set_printoptions(threshold=np.inf)
-        print(sess.run(prediction, feed_dict={x: batch_x, y: batch_y}))
+        for i in range(length):
+                batch_x = np.array(sequence[-n_steps:]).reshape(1,n_steps,127)
+                print("Running session...")
+                prediction = sess.run(logits,feed_dict={x: batch_x})
+                sequence.append(prediction[0,-1,0])
+        print(sequence)

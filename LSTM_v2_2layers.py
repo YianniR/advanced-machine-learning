@@ -22,7 +22,7 @@ n_neurons = 150
 n_layers = 2
 n_outputs = 127
 batch_size = 500
-n_epochs = 20
+n_epochs = 1
 
 learning_rate = 0.001
 
@@ -32,13 +32,13 @@ X = tf.placeholder(tf.float32, [None, n_steps, n_inputs], name='inputs')
 Y = tf.placeholder(tf.float32, [None, n_outputs], name='target')
 
 #cell = tf.contrib.rnn.BasicRNNCell(num_units=n_neurons) #create cell for 1 layer Rnn
-layers = [tf.contrib.rnn.LSTMCell(num_units=n_neurons, use_peepholes=True) for layers in range(n_layers)]
+layers = [tf.contrib.rnn.LSTMCell(num_units=n_neurons, activation = tf.nn.relu, use_peepholes=True) for layers in range(n_layers)]
 multi_layer_cell = tf.contrib.rnn.MultiRNNCell(layers)
 #outputs, states = tf.nn.dynamic_rnn(cell, X, dtype=tf.float32)
 outputs, states = tf.nn.dynamic_rnn(multi_layer_cell, X, dtype = tf.float32)
 
-logits_before_bn = tf.layers.dense(outputs[:,(n_steps-1),:], n_outputs, name='outputs')
-logits = tf.layers.batch_normalization(logits_before_bn, training=batch_training, momentum=0.9)
+logits_before_bn = tf.layers.dense(outputs[:,(n_steps-1),:], n_outputs)
+logits = tf.layers.batch_normalization(logits_before_bn, training=batch_training, momentum=0.9,name='outputs')
 
 #xentropy = tf.nn.sparse_softmax_cross_entropy_with_logits(labels=Y, logits=logits)
 loss = tf.reduce_mean(tf.square(logits - Y), name='mse')
@@ -59,12 +59,12 @@ x_test, y_test, _ = batch_maker2(raw_x_test, raw_y_test, n_steps, raw_x_test[:,0
 
 init = tf.global_variables_initializer()
 saver = tf.train.Saver()
-mse_summary = tf.summary.scalar('MSE', mse)
+mse_summary = tf.summary.scalar('MSE', loss)
 file_writer= tf.summary.FileWriter(logdir, tf.get_default_graph())
 
 with tf.Session() as sess:
     sess.run(init)
-    
+
     for epoch in range(n_epochs):
         for batch in range(n_batches):
             print('Epoch {} of {}, batch {} of {}'.format(epoch, n_epochs, batch, n_batches))
@@ -80,5 +80,5 @@ with tf.Session() as sess:
         loss_test = loss.eval(feed_dict={X: x_test[0,:], Y: y_test[0,:]})
         print(epoch, 'Loss_train:', loss_train, '\tLoss_test:', loss_test)
     save_path = saver.save(sess, path)
-    
+
     file_writer.close()
