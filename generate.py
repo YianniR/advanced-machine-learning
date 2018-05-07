@@ -51,6 +51,8 @@ with tf.Session() as sess:
     #logits = tf.get_default_graph().get_tensor_by_name("outputs")
 
     sequence = seed
+    step = [0.]*127
+    sequence = [step]*n_steps
     for i in range(100):
         batch_x = np.array(sequence[-n_steps:]).reshape(1,n_steps,127)
         prediction = sess.run(logits,feed_dict={X: batch_x})

@@ -4,6 +4,8 @@ from tensorflow.contrib import rnn
 from tqdm import tqdm
 from pprint import pprint
 import os
+from datetime import datetime
+from lib.file_handle import *
 
 def set_up_placeholders(n_inputs,n_steps,n_outputs):
 
@@ -132,9 +134,6 @@ def train_v2(x,y,logits,train_x, train_y, test_x, test_y,n_steps,batch_size,num_
                 sess.run(training_op, feed_dict = {x: batch_x,y: batch_y})
                 i += 1
 
-#            acc_train = accuracy.eval(feed_dict = {x: batch_x,y: batch_y})
-#            print('Epoch', epoch, 'completed. Accuracy:',acc_train)
-
         batches_x,batches_y = batch_maker(test_x,test_y,n_steps,batch_size)
         print("Testing Accuracy:", sess.run(accuracy, feed_dict={x: batch_x,y: batch_y}))
         saver.save(sess, save_path=save_path)
@@ -169,22 +168,49 @@ def train(x,y,logits,train_x, train_y, test_x, test_y,n_steps,batch_size,num_epo
 
                 i += 1
 
-
-#            print('Epoch', epoch, 'completed. loss:',epoch_loss)
-
         batches_x,batches_y = batch_maker(test_x,test_y,n_steps,batch_size)
 
+        #Make path
+        now = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+        root_logdir = "tf_logs"
+        logdir = "{}/run-{}/".format(root_logdir, now)
+
+        directory = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+        path = directory + "\log\LSTM_layer_2_model_{}.ckpt".format(now)
+
         # Save the variables to disk.
-        dir_path = os.path.dirname(os.path.realpath(__file__))
-        save_path = saver.save(sess, dir_path + "/model/rnn.ckpt")
+        save_path = saver.save(sess, path)
         print("Model saved in path: %s" % save_path)
 
+def run(length,n_steps,dir_to_load):
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    saver = tf.train.import_meta_graph(dir_path + dir_to_load + ".meta")
 
-        prediction = tf.nn.softmax(logits)
-        correct_pred = tf.equal(tf.argmax(prediction, 1), tf.argmax(y, 1))
-        accuracy = tf.reduce_mean(tf.cast(correct_pred, tf.float32))
-        print("Testing Accuracy:", sess.run(accuracy, feed_dict={x: batch_x,y: batch_y}))
+    with tf.Session() as sess:
 
+        #CHRIS TRAINED
+        saver.restore(sess,dir_path + dir_to_load)
+
+        # for op in tf.get_default_graph().get_operations():
+        #     print(op.name)
+
+        X = tf.get_default_graph().get_tensor_by_name("input:0")
+        logits = tf.get_default_graph().get_tensor_by_name("predictions/kernel/Assign:0")
+
+        #sequence = seed
+        step = [0.]*127
+        sequence = [step]*n_steps
+        for i in range(100):
+            batch_x = np.array(sequence[-n_steps:]).reshape(1,n_steps,127)
+            prediction = sess.run(logits,feed_dict={X: batch_x})
+            binary_prediction = sess.run(tf.to_int32(prediction[n_steps-1,:] > 0.5))
+            #binary_prediction = prediction[n_steps-1,:]
+
+            sequence.append(binary_prediction)
+
+        print(sequence)
+
+    save_var(dir_path+"\generated_sequence.pickle",sequence)
 
 def multilayer_perceptron_model(input_,n_input_nodes,n_nodes_hl1,n_nodes_hl2,n_nodes_hl3,n_classes):
     hidden_layer_1 = {'weights': tf.Variable(tf.random_normal([n_input_nodes,n_nodes_hl1])),
@@ -212,26 +238,3 @@ def multilayer_perceptron_model(input_,n_input_nodes,n_nodes_hl1,n_nodes_hl2,n_n
     output = tf.matmul(l3,output_layer['weights']) + output_layer['biases']
 
     return output
-
-def run(length,n_steps,dir_to_load):
-
-    dir_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-    saver = tf.train.import_meta_graph(dir_path + dir_to_load)
-    x = tf.get_default_graph().get_tensor_by_name("inputs:0")
-    logits = tf.get_default_graph().get_tensor_by_name("logits:0")
-
-
-    with tf.Session() as sess:
-        #batch_x, batch_y = seed_maker(seed,seed,n_steps,1)
-
-        step = [0.]*127
-        print(step)
-        sequence = [step]*n_steps
-        print(sequence)
-
-        for i in range(length):
-                batch_x = np.array(sequence[-n_steps:]).reshape(1,n_steps,127)
-                print("Running session...")
-                prediction = sess.run(logits,feed_dict={x: batch_x})
-                sequence.append(prediction[0,-1,0])
-        print(sequence)

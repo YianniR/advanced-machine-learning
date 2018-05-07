@@ -31,13 +31,12 @@ batch_training = tf.placeholder_with_default(False, shape=(), name='training')
 X = tf.placeholder(tf.float32, [None, n_steps, n_inputs], name='inputs')
 Y = tf.placeholder(tf.float32, [None, n_outputs], name='target')
 
-#cell = tf.contrib.rnn.BasicRNNCell(num_units=n_neurons) #create cell for 1 layer Rnn
 layers = [tf.contrib.rnn.LSTMCell(num_units=n_neurons, activation = tf.nn.relu, use_peepholes=True) for layers in range(n_layers)]
 multi_layer_cell = tf.contrib.rnn.MultiRNNCell(layers)
-#outputs, states = tf.nn.dynamic_rnn(cell, X, dtype=tf.float32)
 outputs, states = tf.nn.dynamic_rnn(multi_layer_cell, X, dtype = tf.float32)
 
-logits_before_bn = tf.layers.dense(outputs[:,(n_steps-1),:], n_outputs)
+#logits_before_bn = tf.layers.dense(outputs[:,(n_steps-1),:], n_outputs)
+logits_before_bn = tf.layers.dense(states[-1][1], n_outputs)
 logits = tf.layers.batch_normalization(logits_before_bn, training=batch_training, momentum=0.9,name='outputs')
 
 #xentropy = tf.nn.sparse_softmax_cross_entropy_with_logits(labels=Y, logits=logits)

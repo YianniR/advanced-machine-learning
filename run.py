@@ -17,33 +17,28 @@ def main(args):
     n_epochs = int(args.num_epochs)
 
     #Set up placeholders
-    # input_,target_ = set_up_placeholders(n_inputs,n_steps,n_outputs)
+    input_,target_ = set_up_placeholders(n_inputs,n_steps,n_outputs)
 
     #Set up dataset
     data = Dataset("Dataset 1","bach","Just the one hot vectors, with no pre-processing","28/5/2018")
     # data.make_dataset(trainingSplit=0.9)
     # data.save("dataset1.pickle")
-    # data.load("bach.pickle")
+    data.load("bach.pickle")
 
     #Split input and targets. (I'll make a function to do that, also idk if this is the right way)
-    # train_x = data.train[0:-1]
-    # train_y = data.train[1:]
-    # test_x = data.test[0:-1]
-    # test_y = data.test[1:]
-    #
-    # print("Train Length:" + str(len(data.train)))
-    # print("Test Length :" + str(len(data.test)))
+    train_x = data.train[0:-1]
+    train_y = data.train[1:]
+    test_x = data.test[0:-1]
+    test_y = data.test[1:]
+
+    print("Train Length:" + str(len(data.train)))
+    print("Test Length :" + str(len(data.test)))
 
     # #Setup model and train it
-    #prediction = multilayer_perceptron_model(input_,n_inputs,150,100,75,n_outputs)
-#<<<<<<< HEAD
-    # cell, output, states, prediction = rnn_model(input_,n_steps,n_outputs)
-    # save = train_v2(input_,target_,prediction,train_x, train_y, test_x, test_y,n_steps,batch_size,n_epochs)
-#=======
-    #logits = rnn_model(input_,n_steps,n_outputs)
-    #train(input_,target_,logits,train_x, train_y, test_x, test_y,n_steps,batch_size,n_epochs)
-    run(10,25,"\log\LSTM_layer_2_model_20180505145915.ckpt.meta")
-# >>>>>>> ef45218692e781aed32424fab2daa660f2a4fef2
+
+    cell, outputs, states, logits = rnn_model(input_,n_steps,n_outputs)
+    train(input_,target_,logits,train_x, train_y, test_x, test_y,n_steps,batch_size,n_epochs)
+    #run(10,n_steps,"\model\\rnn.ckpt")
 
 if __name__ == "__main__":
     #Set up argument parser
@@ -51,7 +46,7 @@ if __name__ == "__main__":
 	group = parser.add_mutually_exclusive_group()
 
 	#Add parser arguments
-	group.add_argument("-e", "--num_epochs", action="store",default = 20, nargs='?', help='Set num of epochs')
+	group.add_argument("-e", "--num_epochs", action="store",default = 100, nargs='?', help='Set num of epochs')
 	group.add_argument("-b", "--batch_size", action="store",default = 500, nargs='?', help='Set batch size')
 	group.add_argument("-s", "--num_steps", action="store", default = 25, nargs='?', help='Set num of steps')
 
