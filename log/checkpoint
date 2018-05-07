@@ -1,2 +1,2 @@
-model_checkpoint_path: "C:\\Users\\Laptop\\workspace_python\\advanced-machine-learning\\log\\LSTM_layer_2_model_20180507172143.ckpt"
-all_model_checkpoint_paths: "C:\\Users\\Laptop\\workspace_python\\advanced-machine-learning\\log\\LSTM_layer_2_model_20180507172143.ckpt"
+model_checkpoint_path: "C:\\Users\\Laptop\\workspace_python\\advanced-machine-learning\\log\\rnn20180507184621.ckpt"
+all_model_checkpoint_paths: "C:\\Users\\Laptop\\workspace_python\\advanced-machine-learning\\log\\rnn20180507184621.ckpt"

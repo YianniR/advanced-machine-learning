@@ -154,7 +154,7 @@ def train(x,y,logits,train_x, train_y, test_x, test_y,n_steps,batch_size,num_epo
         batches_x,batches_y = batch_maker(train_x,train_y,n_steps,batch_size)
 
         print("Training for",num_epochs,"epochs...")
-        for epoch in tqdm(range(num_epochs)):
+        for epoch in range(num_epochs):
             epoch_loss = 0
 
             n_batches = int(len(train_x)/batch_size)
@@ -165,9 +165,8 @@ def train(x,y,logits,train_x, train_y, test_x, test_y,n_steps,batch_size,num_epo
 
                 _, c = sess.run([optimizer,cost],feed_dict = {x: batch_x,y: batch_y})
                 epoch_loss += c
-                print(epoch_loss)
                 i += 1
-
+            print("Epoch: ",epoch," Loss: ",epoch_loss)
         batches_x,batches_y = batch_maker(test_x,test_y,n_steps,batch_size)
 
         #Make path
