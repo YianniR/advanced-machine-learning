@@ -4,6 +4,7 @@ from lib.networks import *
 from lib.musicalPiece import *
 from lib.dataset import *
 from lib.file_handle import *
+from music21 import *
 import os
 
 n_steps   = 25
@@ -50,7 +51,7 @@ with tf.Session() as sess:
     #logits = tf.get_default_graph().get_tensor_by_name("outputs")
 
     sequence = seed
-    for i in range(500):
+    for i in range(100):
         batch_x = np.array(sequence[-n_steps:]).reshape(1,n_steps,127)
         prediction = sess.run(logits,feed_dict={X: batch_x})
         binary_prediction = sess.run(tf.to_int32(prediction[149,:] > 0.1))
@@ -61,21 +62,65 @@ with tf.Session() as sess:
 
     save_var(dir_path+"\generated_sequence.pickle",sequence)
 
-'''
-outputs/kernel/Initializer/random_uniform/shape
-outputs/kernel/Initializer/random_uniform/min
-outputs/kernel/Initializer/random_uniform/max
-outputs/kernel/Initializer/random_uniform/RandomUniform
-outputs/kernel/Initializer/random_uniform/sub
-outputs/kernel/Initializer/random_uniform/mul
-outputs/kernel/Initializer/random_uniform
-outputs/kernel
-outputs/kernel/Assign
-outputs/kernel/read
-outputs/bias/Initializer/zeros
-outputs/bias
-outputs/bias/Assign
-outputs/bias/read
-outputs/MatMul
-outputs/BiasAdd
-'''
+
+def stream_from_piano_roll(pianoroll, divisor):
+    #go through each time step  in the piano roll. if there is a note there, search for the end and get duration (filling zeros behind it)
+    #if it's a rest, look for first column with next note in and make a rest of that duration
+    song_stream = stream.Stream()
+    idx = 0
+    while idx < len(pianoroll): #t is the time step, represented by a list
+        t = pianoroll[idx]
+        position = idx/divisor
+        pitch = next((i for i, x in enumerate(t) if x==1), None) #get the position of the non-zero element
+        if pitch == None: #rest or old note
+            pitch = next((i for i, x in enumerate(t) if x==2), None)
+
+        if pitch == None: #this is a rest
+            #look for the end of the rest
+            tmp_idx = idx+1
+            while tmp_idx < len(pianoroll) and sum(pianoroll[tmp_idx]) == 0:
+                tmp_idx += 1
+
+            d = (tmp_idx - idx)/divisor
+
+            #make a rest
+            r = note.Rest()
+            r.duration.quarterLength = d #duration is set. propogates through
+            r.offset = position
+            song_stream.append(r)
+
+            idx = tmp_idx #skip all the rests
+        else: #a value of 1 at the pitch means its a new note, a alue of 2 means its an old note
+            #look for the end of the note
+            if t[pitch] == 1: #it's a new note
+                pianoroll[idx][pitch] = 2 #we have dealt with this note
+                tmp_idx = idx+1
+                while tmp_idx < len(pianoroll) and pianoroll[tmp_idx][pitch] == 1:
+                    pianoroll[tmp_idx][pitch] = 2 #we have dealt with this note
+                    tmp_idx += 1
+
+                d = (tmp_idx - idx)/divisor
+
+                #make a note
+                n = note.Note()
+                n.pitch.midi = pitch #pitch is set. propogates through to other properties
+                n.duration.quarterLength = d #duration is set. propogates through
+                n.offset = position
+                song_stream.append(n)
+
+                #here, we do not move onto the next time step in case we have simultaneous notes
+
+            else: #it's an old note
+                idx += 1 #move onto next time step
+
+
+    return song_stream
+
+song = stream_from_piano_roll(sequence, 8)
+#song.show()
+
+#make a file, then close immediately
+f= open(os.path.expanduser(dir_path+'/generated.mid'),"w+")
+f.close() #this is only done to ensure that the file exists
+
+fp = song.write('midi', fp=os.path.expanduser(dir_path+'/generated.mid')) #save as a midi file
