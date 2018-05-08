@@ -17,14 +17,30 @@ n_epochs = 20
 
 learning_rate = 0.001
 
-init = tf.global_variables_initializer()
 dir_path = os.path.dirname(os.path.realpath(__file__))
-saver = tf.train.import_meta_graph(dir_path + "\log\LSTM_layer_2_model_20180505145915.ckpt.meta")
+
+batch_training = tf.placeholder_with_default(False, shape=(), name='training')
+
+X = tf.placeholder(tf.float32, [None, n_steps, n_inputs], name='inputs')
+Y = tf.placeholder(tf.float32, [None, n_outputs], name='target')
+
+layers = [tf.contrib.rnn.LSTMCell(num_units=n_neurons, activation = tf.nn.relu, use_peepholes=True) for layers in range(n_layers)]
+multi_layer_cell = tf.contrib.rnn.MultiRNNCell(layers)
+outputs, states = tf.nn.dynamic_rnn(multi_layer_cell, X, dtype = tf.float32)
+
+#logits_before_bn = tf.layers.dense(outputs[:,(n_steps-1),:], n_outputs)
+logits_before_bn = tf.layers.dense(states[-1][1], n_outputs)
+logits = tf.layers.batch_normalization(logits_before_bn, training=batch_training, momentum=0.9,name='outputs')
+
+#xentropy = tf.nn.sparse_softmax_cross_entropy_with_logits(labels=Y, logits=logits)
+loss = tf.reduce_mean(tf.square(logits - Y), name='mse')
+optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate)
+training_op = optimizer.minimize(loss)
+
+# saver = tf.train.import_meta_graph(dir_path + "\log\LSTM_layer_2_model_20180507194433.ckpt.meta")
 
 #Set up dataset
 data = Dataset("Dataset 1","bach","Just the one hot vectors, with no pre-processing","28/5/2018")
-# data.make_dataset(trainingSplit=0.9)
-# data.save("dataset1.pickle")
 data.load("bach.pickle")
 
 #Split input and targets. (I'll make a function to do that, also idk if this is the right way)
@@ -34,33 +50,32 @@ test_x = data.test[0:-1]
 test_y = data.test[1:]
 seed = data.test[0:25]
 
+saver = tf.train.Saver()
 
 with tf.Session() as sess:
-    #init.run()
-    #saver = tf.train.import_meta_graph(dir_path + "\log\LSTM_layer_2_model_20180505145915.ckpt.meta")
-    #saver.restore(sess,dir_path + "\log\LSTM_layer_2_model_20180505145915.ckpt")
+    #saver = tf.train.import_meta_graph(dir_path + "\log\LSTM_layer_2_model_20180507194433.ckpt.meta")
+    #saver.restore(sess,dir_path + "\log\LSTM_layer_2_model_20180507194433.ckpt")
 
     #CHRIS TRAINED
-    saver.restore(sess,dir_path + "\log\LSTM_layer_2_model_20180505145915.ckpt")
+    saver.restore(sess,dir_path + "\log\LSTM_layer_2_model_20180507194433.ckpt")
 
     # for op in tf.get_default_graph().get_operations():
     #     print(op.name)
 
-    X = tf.get_default_graph().get_tensor_by_name("inputs:0")
-    logits = tf.get_default_graph().get_tensor_by_name("outputs/kernel/Assign:0")
-    #logits = tf.get_default_graph().get_tensor_by_name("outputs")
+    # X = tf.get_default_graph().get_tensor_by_name("inputs:0")
+    # logits = tf.get_default_graph().get_tensor_by_name("outputs/beta/Adam/Assign:0")
 
     sequence = seed
-    step = [0.]*127
+    step = [0]*127
     sequence = [step]*n_steps
     for i in range(100):
         batch_x = np.array(sequence[-n_steps:]).reshape(1,n_steps,127)
-        prediction = sess.run(logits,feed_dict={X: batch_x})
-        binary_prediction = sess.run(tf.to_int32(prediction[149,:] > 0.1))
+        prediction = np.array(sess.run(logits,feed_dict={X: batch_x}))
+        binary_prediction = np.array(sess.run(tf.to_int32(prediction> 0.01)))
+        #sequence.append(prediction[0,:])
+        sequence.append(binary_prediction[0,:])
 
-        sequence.append(binary_prediction)
-
-    print(sequence)
+    print("Sequence: ",sequence)
 
     save_var(dir_path+"\generated_sequence.pickle",sequence)
 
@@ -122,7 +137,7 @@ song = stream_from_piano_roll(sequence, 8)
 #song.show()
 
 #make a file, then close immediately
-f= open(os.path.expanduser(dir_path+'/generated.mid'),"w+")
+f= open(os.path.expanduser(dir_path+'/generated_200.mid'),"w+")
 f.close() #this is only done to ensure that the file exists
 
-fp = song.write('midi', fp=os.path.expanduser(dir_path+'/generated.mid')) #save as a midi file
+fp = song.write('midi', fp=os.path.expanduser(dir_path+'/generated_200.mid')) #save as a midi file
