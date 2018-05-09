@@ -17,8 +17,6 @@ def stream_from_piano_roll(pianoroll, divisor):
             else:
                 p = 1;
 
-
-
     #go through each time step  in the piano roll. if there is a note there, search for the end and get duration (filling zeros behind it)
     #if it's a rest, look for first column with next note in and make a rest of that duration
     song_stream = stream.Stream()
@@ -124,6 +122,8 @@ def main(args):
 
     #Set up dataset
     data = Dataset("Dataset 1","bach","Just the one hot vectors, with no pre-processing","28/5/2018")
+    #data.make_dataset(trainingSplit=0.9)
+    #data.save("bach_augmented.pickle")
     data.load("bach.pickle")
 
     #Split input and targets. (I'll make a function to do that, also idk if this is the right way)

@@ -17,7 +17,7 @@ def main(args):
     tf.reset_default_graph()
 
     directory = os.path.dirname(os.path.realpath(__file__))
-    path = directory + "\log\LSTM_layer_2_model_{}.ckpt".format(now)
+    path = directory + "/log/LSTM_model_{}.ckpt".format(now)
 
     #Set up parameters (can put those in a config file and parse them.)
     n_epochs = int(args.num_epochs)
@@ -49,7 +49,9 @@ def main(args):
 
     #Set up dataset
     data = Dataset("Dataset 1","bach","Just the one hot vectors, with no pre-processing","28/5/2018")
-    data.load("bach.pickle")
+    data.make_dataset(trainingSplit=0.9)
+    data.save("bach_augmented.pickle")
+    #data.load("bach_augmented.pickle")
 
     #Split input and targets. (I'll make a function to do that, also idk if this is the right way)
     raw_x_train = np.array(data.train[0:-1])

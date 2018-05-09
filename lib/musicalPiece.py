@@ -54,7 +54,7 @@ class MusicalPiece(object):
         path =  self.path + ".midi"
         fp = s.write('midi', fp=path)
 
-    def make_pitches_one_hot(self,n_notes=127,keep_chords = True):
+    def make_pitches_one_hot(self,transposition=0,n_notes=127,keep_chords = True):
         one_hot_step = np.zeros(n_notes)
 
         #Loop over whole song. Element can be a note or a chord.
@@ -68,13 +68,13 @@ class MusicalPiece(object):
 
             #If a note is found, add it to the one hot step
             if isinstance(element, note.Note):
-                one_hot_step[element.pitch.midi] = 1#element.beatDuration.quarterLength
+                one_hot_step[element.pitch.midi+transposition] = 1#element.beatDuration.quarterLength
 
             #If a chord is found, add every note of the chord.
             elif keep_chords is True:
                 if isinstance(element, chord.Chord):
                     for chord_note in element.pitches:
-                        one_hot_step[chord_note.midi] = 1#element.beatDuration.quarterLength
+                        one_hot_step[chord_note.midi+transposition] = 1#element.beatDuration.quarterLength
 
 
     def make_targets(self, step_size, n_notes=127):
