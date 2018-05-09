@@ -32,7 +32,7 @@ class Dataset(object):
 
         for idx, corpus_file_name in enumerate(tr_bundle):
             piece = MusicalPiece()
-            piece.load_song(corpus_file_name)
+            piece.load_song(str(corpus_file_name))
 
             transpositions = [0,4,-4,12,-12] #oriignal, up and down a major third, and up and down an octave
             for trans_idx in range(len(transpositions)):
@@ -43,7 +43,7 @@ class Dataset(object):
 
         for idx, corpus_file_name in enumerate(ts_bundle):
             piece = MusicalPiece()
-            piece.load_song(corpus_file_name)
+            piece.load_song(str(corpus_file_name))
 
             transpositions = [0,4,-4,12,-12]; #oriignal, up and down a major third, and up and down an octave
             for trans_idx in range(len(transpositions)):
