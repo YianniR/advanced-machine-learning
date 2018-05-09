@@ -14,7 +14,8 @@ logdir = "{}/run-{}/".format(root_logdir, now)
 tf.reset_default_graph()
 
 directory = os.path.dirname(os.path.realpath(__file__))
-path = directory + "\log\LSTM_layer_2_model_{}.ckpt".format(now)
+epoch = 1
+path = directory + "\log\LSTM\layers_3_{}_epoch_{}.ckpt".format(now, epoch)
 print(path)
 n_steps   = 25
 n_inputs  = 127
@@ -63,18 +64,21 @@ file_writer= tf.summary.FileWriter(logdir, tf.get_default_graph())
 
 with tf.Session() as sess:
     sess.run(init)
-
+    run_count = 0
     for epoch in range(n_epochs):
         for batch in range(n_batches):
             print('Epoch {} of {}, batch {} of {}'.format(epoch, n_epochs, batch, n_batches))
-            run_count = epoch*batch + batch
             X_batch, Y_batch = x_train[batch, :], y_train[batch, :]
             sess.run(training_op, feed_dict={X: X_batch, Y: Y_batch})
             if run_count%50 == 0:
                 summary_str = mse_summary.eval(feed_dict={X: X_batch, Y: Y_batch})
                 file_writer.add_summary(summary_str, run_count)
-#                mse = loss.eval(feed_dict={X: X_batch, Y: Y_batch})
-#                print(epoch, '\tMSE:', mse)
+            run_count = run_count + 1
+        
+        if epoch%100 == 0:
+            save_path = saver.save(sess, path)
+            print("Checkpoint saved at {} epochs".format(epoch))
+        
         loss_train = loss.eval(feed_dict={X: X_batch, Y: Y_batch})
         loss_test = loss.eval(feed_dict={X: x_test[0,:], Y: y_test[0,:]})
         print(epoch, 'Loss_train:', loss_train, '\tLoss_test:', loss_test)
