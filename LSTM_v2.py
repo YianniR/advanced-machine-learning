@@ -76,8 +76,12 @@ def main(args):
                 if run_count%50 == 0:
                     summary_str = mse_summary.eval(feed_dict={X: X_batch, Y: Y_batch})
                     file_writer.add_summary(summary_str, run_count)
-    #                mse = loss.eval(feed_dict={X: X_batch, Y: Y_batch})
-    #                print(epoch, '\tMSE:', mse)
+                run_count = run_count + 1
+
+            if epoch%100 == 0:
+                save_path = saver.save(sess, path)
+                print("Checkpoint saved at {} epochs".format(epoch))
+
             loss_train = loss.eval(feed_dict={X: X_batch, Y: Y_batch})
             loss_test = loss.eval(feed_dict={X: x_test[0,:], Y: y_test[0,:]})
             print(epoch, 'Loss_train:', loss_train, '\tLoss_test:', loss_test)
@@ -88,7 +92,7 @@ def main(args):
 if __name__ == "__main__":
     #Set up argument parser
 	parser = argparse.ArgumentParser(description="Train an amazing neural network that makes music stuffs.")
-	group = parser.add_mutually_exclusive_group()
+	group = parser.add_argument_group('group')
 
 	#Add parser arguments
 	group.add_argument("-e", "--num_epochs", action="store",default = 100, nargs='?', help='Set num of epochs')
