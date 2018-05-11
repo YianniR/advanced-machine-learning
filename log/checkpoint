@@ -1,2 +1,2 @@
-model_checkpoint_path: "/home/yiannis.rav/advanced-machine-learning\\log\\LSTM_layer_2_model_20180507194433.ckpt"
-all_model_checkpoint_paths: "/home/yiannis.rav/advanced-machine-learning\\log\\LSTM_layer_2_model_20180507194433.ckpt"
+model_checkpoint_path: "/home/yiannis.rav/advanced-machine-learning/log/LSTM_model_20180509171428.ckpt"
+all_model_checkpoint_paths: "/home/yiannis.rav/advanced-machine-learning/log/LSTM_model_20180509171428.ckpt"
