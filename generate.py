@@ -93,6 +93,7 @@ def main(args):
     input_file = args.input_file
     output_file = args.output_file
     length = int(args.length)
+    threshold = float(args.threshold)
     n_steps = 25
     n_inputs = 127
     n_neurons = 150
@@ -143,8 +144,8 @@ def main(args):
         for i in range(length):
             batch_x = np.array(sequence[-n_steps:]).reshape(1,n_steps,127)
             prediction = np.array(sess.run(logits,feed_dict={X: batch_x}))
-            binary_prediction = np.array(sess.run(tf.to_int32(prediction> 0.31)))
-            # sequence.append(prediction[0,:])
+            binary_prediction = np.array(sess.run(tf.to_int32(prediction> threshold)))
+            #sequence.append(prediction[0,:])
             sequence.append(binary_prediction[0,:])
 
     print("Sequence: ",sequence)
@@ -169,6 +170,7 @@ if __name__ == "__main__":
 	group.add_argument("-i", "--input_file", action="store", default = "\log\LSTM_2000_epochs.ckpt", help='Input dir to run')
 	group.add_argument("-o", "--output_file", action="store", default = "generated.mid", help='Output Dir')
 	group.add_argument("-l", "--length", action="store", default = 150, help='Length of song')
+	group.add_argument("-t", "--threshold", action="store", default = 0.3, help='Output threshold')
 
 	#Parse arguments and start main
 	args = parser.parse_args()
