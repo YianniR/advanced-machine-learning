@@ -39,7 +39,7 @@ The  networks  developed  during  this  study  were  trained  on  the  Google  C
 To generate the music, the network was given 30 time steps, filled with musical rests (no notes being played),as a seed.  Using this, they predicted the next value, which was then appended to the end of the sequence, and5
 fed into the network for the subsequent time step.  A part of a pre-existsing musical piece can also be used as aseed, and the network will continue to generate from the end of the provided seed.  The output from the LSTMis a vector of 127 values from 0 to 0.4.  A threshold was set to convert these to a one hot vector representation.Any value higher than the threshold would be changed to 1 and any value lower would become 0.  The thresholdwas varied over the available range, generating different pieces of music.  With a high threshold, the networkgenerated simple music, often with one, or few notes playing simultaneously.  Lowering the threshold assertednotes generated with lower confidence by the network, producing music that appears more messy, dissonant,and complex.  However, if the threshold was set too high, the network generated very long pauses with somenotes in between.  An attempt to find the balance point for each network was made; producing mildly complex,polyphonic, and playful music. 
 
-![Network comparison](table.png)
+![Network comparison](table.PNG)
 
 Sample piece generated:https://www.youtube.com/watch?v=HHRIzfl12fk.
 Thresholding network 1:https://www.youtube.com/watch?v=s-Balq1Z4gc.
