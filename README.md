@@ -1,4 +1,4 @@
-# advanced-machine-learning
+# Sonorous - LSTM Music Generation
 
 [![Sonorous - LSTM music (Best piece generated)](https://img.youtube.com/vi/HHRIzfl12fk/0.jpg)](https://www.youtube.com/watch?v=HHRIzfl12fk)
 
