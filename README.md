@@ -41,16 +41,16 @@ fed into the network for the subsequent time step.  A part of a pre-existsing mu
 
 ![Network comparison](table.PNG)
 
-Sample piece generated:https://www.youtube.com/watch?v=HHRIzfl12fk.
-Thresholding network 1:https://www.youtube.com/watch?v=s-Balq1Z4gc.
-Thresholding network 3:https://www.youtube.com/watch?v=k5-xQpvUG7s.
+Sample piece generated:https://www.youtube.com/watch?v=HHRIzfl12fk.  
+Thresholding network 1:https://www.youtube.com/watch?v=s-Balq1Z4gc.  
+Thresholding network 3:https://www.youtube.com/watch?v=k5-xQpvUG7s.  
 
 # References
-[1]  B. Sievers, L. Polansky, M. Casey, and T. Wheatley, “Music and movement share a dynamic structure thatsupports universal expressions of emotion,”Proceedings of the National Academy of Sciences, vol. 110, no. 1,pp. 70–75, 2012.
-[2]  A. van den Oord, S. Dieleman, and H. Zen, “Wavenet:  A generative model for raw audio — deepmind,”2016. [Online]. Available:  https://deepmind.com/blog/wavenet-generative-model-raw-audio/
-[3]  “Magenta,” 2018. [Online]. Available:  https://magenta.tensorflow.org
-[4]  I. Simon and S. Oore, “Performance rnn:  Generating music with expressive timing and dynamics,” 2017.[Online]. Available:  https://magenta.tensorflow.org/performance-rnn
-[5]  F. BRINKKEMPER, “Analyzing six deep learning tools for music generation - the asimov institute,” 2016.[Online]. Available:  http://www.asimovinstitute.org/analyzing-deep-learning-tools-music/
-[6]  “Music21  -  user’s  guide,  chapter  11:    Corpus  searching  —  music21  documentation,”  2018.  [Online].Available:  http://web.mit.edu/music21/doc/usersGuide/usersGuide11\corpusSearching.html
-[7]  “Midi specification,” 2018. [Online]. Available:  https://www.midi.org/specifications
-[8]  A. G ́eron,Hands-on machine learning with Scikit-Learn and TensorFlow, 1st ed.    O’Reilly Media, 2017
+[1]  B. Sievers, L. Polansky, M. Casey, and T. Wheatley, “Music and movement share a dynamic structure thatsupports universal expressions of emotion,”Proceedings of the National Academy of Sciences, vol. 110, no. 1,pp. 70–75, 2012.  
+[2]  A. van den Oord, S. Dieleman, and H. Zen, “Wavenet:  A generative model for raw audio — deepmind,”2016. [Online].  Available:  https://deepmind.com/blog/wavenet-generative-model-raw-audio/  
+[3]  “Magenta,” 2018. [Online]. Available:  https://magenta.tensorflow.org  
+[4]  I. Simon and S. Oore, “Performance rnn:  Generating music with expressive timing and dynamics,” 2017.[Online]. Available:  https://magenta.tensorflow.org/performance-rnn  
+[5]  F. BRINKKEMPER, “Analyzing six deep learning tools for music generation - the asimov institute,” 2016.[Online]. Available:  http://www.asimovinstitute.org/analyzing-deep-learning-tools-music/  
+[6]  “Music21  -  user’s  guide,  chapter  11:    Corpus  searching  —  music21  documentation,”  2018.  [Online].Available:  http://web.mit.edu/music21/doc/usersGuide/usersGuide11\corpusSearching.html  
+[7]  “Midi specification,” 2018. [Online]. Available:  https://www.midi.org/specifications  
+[8]  A. G ́eron,Hands-on machine learning with Scikit-Learn and TensorFlow, 1st ed.    O’Reilly Media, 2017  
